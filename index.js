@@ -19,7 +19,7 @@ co(run)
     console.error(err.stack)
   })
 
-function *run () {
+function* run() {
   console.log(`fetching... ${listUrl}`)
   const html = yield fetch(listUrl)
 
@@ -33,7 +33,7 @@ function *run () {
   })
   const len = links.length
   console.log(`${len} links fetched`)
-
+  var AllText = ''
   for (let i = 0; i < len; i++) {
     const link = links[i]
     // console.log(`fetching... ${i}/${len} - ${link.title}`)
@@ -49,16 +49,22 @@ function *run () {
       // eg. http://downdb.51voa.com/201604/fusion-reactor-still-in-works.mp3
       const audioUrl = `http://downdb.51voa.com/${audioPath}`
       console.log(`downloading... ${i}/${len} - ${link.title}`)
-      yield download(audioUrl, dest)  
+      // console.log(delHtmlTag(getMidString(html,'<div id="content">','</div>')))
+      yield download(audioUrl, dest)
+      var pre ='***' + audioPath + '***\n' + getVoaText(html)
+      saveTextFile(dest,pre)
+      AllText += pre + '\n\n\n'
+
     } catch (err) {
       console.error(err)
     }
+    saveTextFile(`${dir}/AllText`,AllText)
   }
 
   console.log(`${len} files saved`)
 }
 
-function *download (url, dest) {
+function* download(url, dest) {
   return yield (done) => {
     if (fs.existsSync(dest)) return done() // skipping
     mkdirp.sync(dirname(dest))
@@ -69,10 +75,41 @@ function *download (url, dest) {
   }
 }
 
-function *fetch (url) {
+function* fetch(url) {
   return yield (done) => {
     request(url, (err, res, html) => {
       done(err, html)
     })
   }
+}
+
+function getMidString(text, start, end) {
+  var startIndex, endIndex
+  startIndex = text.indexOf(start, 0) + start.length
+  endIndex = text.indexOf(end, startIndex)
+  return text.slice(startIndex, endIndex)
+}
+
+function delHtmlTag(str) {
+  return str.replace(/<[^>]+>/g, "");//去掉所有的html标记
+}
+
+function getVoaText(htmltext) {
+  return delHtmlTag(getMidString(htmltext,'<div id="content">','</div>'));
+}
+function saveTextFile(dir,data){
+  // 创建一个可以写入的流，写入到文件 .txt 中
+  var writerStream = fs.createWriteStream(`${dir}.txt`);
+  // 使用 utf8 编码写入数据
+  writerStream.write(data, 'UTF8');
+  // 标记文件末尾
+  writerStream.end();
+  // 处理流事件 --> data, end, and error
+  // writerStream.on('finish', function () {
+  //   console.log("写入完成。");
+  // });
+  writerStream.on('error', function (err) {
+    console.log(err.stack);
+  });
+  // console.log("程序执行完毕");
 }
