@@ -10,3 +10,8 @@ $ 51voa ./mp3 http://www.51voa.com/VOA_Standard_1.html
 ```
 
 <img width="289" height="218" src="https://fritx.github.io/51voa-cli/img/preview.png" />
+
+# New
+Add a text getter.  
+You can get the text from the website.  
+But you should update by yourself --- change the 'index.js' file.
